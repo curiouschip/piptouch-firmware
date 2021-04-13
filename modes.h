@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <Keyboard.h>
 #include <MIDIUSB.h>
+#include <Joystick.h>
 #include <stdint.h>
 #include "console.h"
 #include "settings.h"
@@ -201,18 +202,49 @@ private:
 };
 
 class GamepadMode : public Mode {
+public:
+  GamepadMode() : stick(
+    0x03, // hidReportId
+    JOYSTICK_TYPE_GAMEPAD, // type
+    8, // buttonCount
+    0, // hatSwitchCount
+    true, // includeXAxis
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false,
+    false
+  ) {
+    stick.setXAxisRange(-128, 127);
+    stick.begin(false);
+  }
+  
 protected:
-  void activateHardware() {
-    
-  }
-
-  void deactivateHardware() {
-    
-  }
+  void activateHardware() {}
+  void deactivateHardware() {}
 
   void process() {
-    
+    int16_t slider = sliderCurr;
+    if (slider < 0) {
+      slider = 128;
+    }
+    stick.setXAxis(slider - 128);
+
+    uint8_t b = buttonsCurr;
+    for (int i = 0; i < 8; ++i) {
+      stick.setButton(i, (b & 0x01) ? 1 : 0);
+      b >>= 1;
+    }
+    stick.sendState();
   }
+
+private:
+  Joystick_ stick;
 };
 
 #define MODE_COUNT 5
