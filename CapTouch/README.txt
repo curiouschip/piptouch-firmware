@@ -1,3 +1,12 @@
+# TODO
+
+  - verify that MIDI descriptor format is correct
+  - package up bootloader on Github (+ document pinout/changes)
+  - create board package + bootloader
+  - test on Windows
+
+
+
 # Bootloader
 
 Board designed to work with standard Leonardo (Caterina) bootloader.

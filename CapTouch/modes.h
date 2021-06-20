@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <Keyboard.h>
 #include <MIDIUSB.h>
-#include <Joystick.h>
+#include "Joystick.h"
 #include <stdint.h>
 #include "console.h"
 #include "settings.h"
@@ -54,25 +54,9 @@ protected:
     
     uint8_t b = buttonsCurr;
     CONSOLE_PORT.print("> ");
-    switch (Settings::getSerialReportMode()) {
-      case SERIAL_REPORT_MODE_BUTTON_STATES:
-      {
-        for (int i = 0; i < 8; ++i) {
-          CONSOLE_PORT.print((b & 0x01) ? 'X' : '_');
-          b >>= 1;  
-        }
-        break;
-      }
-      case SERIAL_REPORT_MODE_DEC:
-      {
-        CONSOLE_PORT.print(b, DEC);
-        break;
-      }
-      case SERIAL_REPORT_MODE_HEX:
-      {
-        CONSOLE_PORT.print(b, HEX);
-        break;
-      }
+    for (int i = 0; i < 8; ++i) {
+      CONSOLE_PORT.print((b & 0x01) ? 'X' : '_');
+      b >>= 1;  
     }
 
     CONSOLE_PORT.print(" ");
@@ -163,28 +147,28 @@ protected:
       bool wasPressed = buttonsPrev & (1 << i);
       bool isPressed = buttonsCurr & (1 << i);
       if (!wasPressed && isPressed) {
-        midiEventPacket_t evt = { 0x09, 0x90 | Settings::getMIDIChannel(), midiNoteMap[i], 127 };
+        midiEventPacket_t evt = { 0x09, 0x90 | settings_get_midi_channel(), midiNoteMap[i], 127 };
         MidiUSB.sendMIDI(evt);
       } else if (wasPressed && !isPressed) {
-        midiEventPacket_t evt = { 0x08, 0x80 | Settings::getMIDIChannel(), midiNoteMap[i], 0 };
+        midiEventPacket_t evt = { 0x08, 0x80 | settings_get_midi_channel(), midiNoteMap[i], 0 };
         MidiUSB.sendMIDI(evt);
       }
     }
     if (sliderCurr != sliderPrev) {
-      uint8_t controller = Settings::getMIDIController();
+      uint8_t controller = settings_get_midi_controller();
       if (controller == 0) {
         uint16_t pitch = 0x2000;
         if (sliderCurr >= 0) {
           pitch = mapRange(0, 255, 0, 0x3FFF, sliderCurr);
         }
-        midiEventPacket_t evt = { 0x0E, 0xE0 | Settings::getMIDIChannel(), pitch & 0x7F, (pitch >> 7) & 0x7F };
+        midiEventPacket_t evt = { 0x0E, 0xE0 | settings_get_midi_channel(), pitch & 0x7F, (pitch >> 7) & 0x7F };
         MidiUSB.sendMIDI(evt);
       } else {
         uint16_t val = 0;
         if (sliderCurr >= 0) {
           val = mapRange(0, 255, 0, 127, sliderCurr);
         }
-        midiEventPacket_t evt = { 0x0B, 0xB0 | Settings::getMIDIChannel(), controller & 0x7F, val };
+        midiEventPacket_t evt = { 0x0B, 0xB0 | settings_get_midi_channel(), controller, val };
         MidiUSB.sendMIDI(evt);
       }
     }
