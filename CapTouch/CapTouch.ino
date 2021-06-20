@@ -50,8 +50,8 @@ void loop() {
 
   if (btn_state & BTN_CAL) {
     indicators_set_ident(true);
-    // cap_touch_recal();
-    delay(50);
+    cap_touch_recal();
+    delay(75);
     indicators_set_ident(false);
   }
 
