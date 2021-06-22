@@ -3,7 +3,7 @@
 
 #include <Arduino.h>
 #include <Keyboard.h>
-#include <MIDIUSB.h>
+#include "simple_midi.h"
 #include "Joystick.h"
 #include <stdint.h>
 #include "console.h"
@@ -148,10 +148,10 @@ protected:
       bool isPressed = buttonsCurr & (1 << i);
       if (!wasPressed && isPressed) {
         midiEventPacket_t evt = { 0x09, 0x90 | settings_get_midi_channel(), midiNoteMap[i], 127 };
-        MidiUSB.sendMIDI(evt);
+        MIDI.sendMIDI(evt);
       } else if (wasPressed && !isPressed) {
         midiEventPacket_t evt = { 0x08, 0x80 | settings_get_midi_channel(), midiNoteMap[i], 0 };
-        MidiUSB.sendMIDI(evt);
+        MIDI.sendMIDI(evt);
       }
     }
     if (sliderCurr != sliderPrev) {
@@ -162,17 +162,17 @@ protected:
           pitch = mapRange(0, 255, 0, 0x3FFF, sliderCurr);
         }
         midiEventPacket_t evt = { 0x0E, 0xE0 | settings_get_midi_channel(), pitch & 0x7F, (pitch >> 7) & 0x7F };
-        MidiUSB.sendMIDI(evt);
+        MIDI.sendMIDI(evt);
       } else {
         uint16_t val = 0;
         if (sliderCurr >= 0) {
           val = mapRange(0, 255, 0, 127, sliderCurr);
         }
         midiEventPacket_t evt = { 0x0B, 0xB0 | settings_get_midi_channel(), controller, val };
-        MidiUSB.sendMIDI(evt);
+        MIDI.sendMIDI(evt);
       }
     }
-    MidiUSB.flush();
+    MIDI.flush();
   }
 
 private:
