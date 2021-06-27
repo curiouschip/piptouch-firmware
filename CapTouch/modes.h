@@ -190,11 +190,11 @@ public:
   GamepadMode() : stick(
     0x03, // hidReportId
     JOYSTICK_TYPE_GAMEPAD, // type
-    8, // buttonCount
+    4, // buttonCount
     0, // hatSwitchCount
     true, // includeXAxis
-    false,
-    false,
+    true, // includeYAxis
+    true, // includeZAxis
     false,
     false,
     false,
@@ -205,6 +205,8 @@ public:
     false
   ) {
     stick.setXAxisRange(-128, 127);
+    stick.setYAxisRange(-128, 127);
+    stick.setZAxisRange(-128, 127);
     stick.begin(false);
   }
   
@@ -213,17 +215,40 @@ protected:
   void deactivateHardware() {}
 
   void process() {
+    uint8_t b = buttonsCurr;
+    
+    bool up = b & 0x01;
+    bool down = b & 0x02;
+    if (up && !down) {
+      stick.setYAxis(-128);
+    } else if (!up && down) {
+      stick.setYAxis(127);
+    } else {
+      stick.setYAxis(0);
+    }
+
+    bool left = b & 0x04;
+    bool right = b & 0x08;
+    if (left && !right) {
+      stick.setXAxis(-128);
+    } else if (!left && right) {
+      stick.setXAxis(127);
+    } else {
+      stick.setXAxis(0);
+    }
+
+    b >>= 4;
+    for (int i = 0; i < 4; ++i) {
+      stick.setButton(i, (b & 0x01) ? 1 : 0);
+      b >>= 1;
+    }
+
     int16_t slider = sliderCurr;
     if (slider < 0) {
       slider = 128;
     }
-    stick.setXAxis(slider - 128);
+    stick.setZAxis(slider - 128);
 
-    uint8_t b = buttonsCurr;
-    for (int i = 0; i < 8; ++i) {
-      stick.setButton(i, (b & 0x01) ? 1 : 0);
-      b >>= 1;
-    }
     stick.sendState();
   }
 
