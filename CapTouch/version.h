@@ -2,6 +2,6 @@
 #define VERSION_H
 
 #define PT_HW_VERSION_STR "1.0"
-#define PT_FW_VERSION_STR "1.0.2"
+#define PT_FW_VERSION_STR "1.0.3"
 
 #endif
